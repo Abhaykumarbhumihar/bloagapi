@@ -48,8 +48,7 @@ router.get("/getprofile",verifyToken,async(req,res)=>{
 router.post("/deletemyprofile",verifyToken,async(req,res)=>{
 
     try {
-        //yaha pe pahle sare post delete krne hai user delete se pahle
-        
+        //yaha pe pahle sare post delete krne hai
         await User.findByIdAndDelete(req.user.id);
         res.status(200).json("User has been deleted");
     } catch (error) {
