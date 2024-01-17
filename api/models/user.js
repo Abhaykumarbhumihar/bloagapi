@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const userSchmea = new mongoose.Schema(
     {
-        username: {
+       username: {
             type: String,
              require: true, 
               unique: true
@@ -17,7 +17,7 @@ const userSchmea = new mongoose.Schema(
         },
         isAdmin: {
             type: Boolean,
-            default: false
+             default: false
         },
         profilePicture:{
             type:String,

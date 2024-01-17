@@ -1,27 +1,40 @@
 const router = require("express").Router();
 const Post = require("../models/Post");
+const upload=require("../fileupload")
 
 const { verifyToken, verifytokenAndAuthorization } = require("../middleware/verifytoken")
 
 //create new post
-router.post("/savePost", verifyToken, async (req, res) => {
+router.post("/savePost", upload.single("postimage"),verifyToken, async (req, res) => {
+    let photoFileName = "";
 
-    const newPost = new Post({
-        title: req.body.title,
-        description: req.body.description,
-        photo: req.body.photo,
-        userId: req.user.id,
-        categories: req.body.categories
-    })
-
-    try {
-        console.log(req.user);
-        const savePost = await newPost.save();
-        // console.log(savePost);
-        res.status(200).json(savePost);
-    } catch (error) {
-        res.status(500).json(err);
+    // Check if a file was uploaded
+    if (req.file) {
+        photoFileName = req.file.filename;
     }
+    // if (!req.file) {
+    //     console.log("File is required");
+    //     return res.status(400).json({ error: "File is required" });
+    // }
+    
+   
+     const newPost = new Post({
+         title: req.body.title,
+         description: req.body.description,
+         photo: photoFileName,
+         userId: req.user.id,
+         categories: req.body.categories
+
+     })
+
+     try {
+        
+         const savePost = await newPost.save();
+          console.log(savePost);
+         res.status(200).json(savePost);
+     } catch (error) {
+         res.status(500).json(error);
+     }
 });
 
  //update my post
@@ -86,7 +99,15 @@ router.get("/getAllpost",verifyToken,async (req,res)=>{
 
     try {
      const post = await Post.find();
-     console.log(post);
+     const postsWithCompleteUrl = post.map(post => {
+        return {
+            ...post._doc, // Copy existing post properties
+            photo: post.photo ? `${req.protocol}://${req.get('host')}/images/${post.photo}` : null
+            // If photo exists, create complete URL, otherwise set to null
+        };
+    });
+
+     console.log(postsWithCompleteUrl);
      res.status(200).json(post);
     } catch (error) {
      res.status(500).json(error);
@@ -98,6 +119,7 @@ router.get("/getAllpost",verifyToken,async (req,res)=>{
  router.get("/getAllpostbyuserid", verifyToken, async (req, res) => {
     try {
         // Retrieve all posts with the matching userId
+
         const posts = await Post.find({ userId: req.user.id });
         res.status(200).json(posts);
     } catch (error) {
@@ -106,4 +128,8 @@ router.get("/getAllpost",verifyToken,async (req,res)=>{
     }
 });
 
+
+router.post("/uploadimage", upload.single("postimage"), (req, res) => {
+    res.status(200).json("File has been uploaded");
+})
 module.exports = router;
